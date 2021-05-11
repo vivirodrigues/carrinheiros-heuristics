@@ -553,14 +553,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-# scenarios: Campinas, Belém, BH
-    #mean_lon = [-43.9438]
-    #mean_lat = [-19.9202]
-    # lon: -48.47000   -43.9438
-    # lat: -1.46000    -19.9202
-
-# if politics is different of weight, calculates
-        #if j != 'weight':
-         #   cost_total = calculate_work_total(G, paths, nodes_mass_increment)
-         # result_work.update([('work_total', float(cost_total))])
