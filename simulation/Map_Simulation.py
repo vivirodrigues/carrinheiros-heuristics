@@ -115,11 +115,11 @@ def edges_type(name_net_xml):
     edges = get_edges(file)
     #  {'id_node_from', 'id_node_to'): 'id_edge'}
     edges_dict = {}
-    for i in edges:
-        if i.attributes['id'].value[0] != ':':
-            edges_dict.update(
-                [((int(i.attributes['from'].value), int(i.attributes['to'].value)), str(i.attributes['type'].value).split(sep='.')[1:])])
-
+    #for i in edges:
+    #    if i.attributes['id'].value[0] != ':':
+    #        edges_dict.update(
+    #            [((int(i.attributes['from'].value), int(i.attributes['to'].value)), str(i.attributes['type'].value).split(sep='.')[1:])])
+    [edges_dict.update([((int(i.attributes['from'].value), int(i.attributes['to'].value)),str(i.attributes['type'].value).split(sep='.')[1:])]) for i in edges if i.attributes['id'].value[0] != ':']
     return edges_dict
 
 
@@ -195,7 +195,7 @@ def edit_map(osm_file):
     # it transforms some edges types in "residential"
     x = root.getElementsByTagName("tag")
 
-    possibilities = ['cycleway', 'service', 'sidewalk', 'footway', 'crossing', 'pedestrian']
+    possibilities = ['cycleway', 'service', 'sidewalk', 'footway', 'crossing', 'pedestrian', 'path']
     for i in range(len(x)):
         if x[i].getAttribute("v") in possibilities:
             x[i].attributes["v"].value = "residential"

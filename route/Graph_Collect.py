@@ -35,7 +35,7 @@ def create_graph_route(nodes_coordinates, nodes_mass_increment):
     # creating a complete graph
     H = nx.complete_graph(len(nodes_coordinates.keys()))
 
-    """
+
     # nx.draw(H, pos=nx.spring_layout(H))
     colors = ['#c1c1c1' for i in range(len(H.edges()) - 1)]
     colors.insert(len(H.edges()), 'r')
@@ -56,7 +56,8 @@ def create_graph_route(nodes_coordinates, nodes_mass_increment):
     }
     nx.draw(H, **options)
     plt.show()
-    """
+
+
 
     # Modifying node names (id nodes of G = id nodes of H)
     node_names = list(nodes_mass_increment.keys())
@@ -74,7 +75,6 @@ def create_graph_route(nodes_coordinates, nodes_mass_increment):
     return H
 
 
-#def sum_costs(G, path, impedance = IMPEDANCE):
 def sum_costs(G, path, impedance):
     """
     This function calculates the sum of the costs
@@ -94,19 +94,18 @@ def sum_costs(G, path, impedance):
                     The sum of all cost (weight)
                     edges of the path.
     """
-    weight = Graph._weight(G, impedance) #'weight')
-    sum_costs = 0
+    sum_costs = nx.path_weight(G, path, impedance)# Graph._weight(G, impedance)
+    #sum_costs = 0
 
-    for i in range(len(path)-1):
-        e = G.adj[path[i]].get(path[i + 1])
-        weight_edge = weight(path[i], path[i + 1], e)
-        sum_costs += weight_edge
+    #for i in range(len(path)-1):
+    #    e = G.adj[path[i]].get(path[i + 1])
+    #    weight_edge = Graph.get_edge_weight(G, path[i], path[i + 1], e, impedance)
+    #    sum_costs += weight_edge
 
     return sum_costs
 
 
-#def cost_path(G, source, target, vehicle_mass, impedance=IMPEDANCE):
-def cost_path(G, source, target, vehicle_mass, impedance):
+def cost_path(G, source, target, vehicle_mass, impedance, heuristic):
     """
     This function calculates the path between source and
     target nodes, and returns it. Besides, calculates the
@@ -123,14 +122,26 @@ def cost_path(G, source, target, vehicle_mass, impedance):
 
     # updates the weight of all edges of the scenario according
     # to the current weight of the vehicle
-    max_grade = max(list(nx.get_edge_attributes(G, "grade").values()))
-    G = Graph.update_weight(G, vehicle_mass, max_grade)
+    if impedance == 'weight':
+        G = Graph.update_weight(G, vehicle_mass)
 
     # finds the shortest path to the destination in the scenario graph
-    #path = Heuristics.shortest_path_faster(G, source, target, 'weight')
-    distance, path = Heuristics.bellman_ford(G, source, target, weight=impedance) # 'weight')
-    # distance, path = Heuristics.bidirectional_dijkstra(G, source, target, weight=IMPEDANCE)
-    #path = nx.astar_path(G, source, target, weight=IMPEDANCE)
+    if heuristic == 'SPFA':
+
+        distance, path = Heuristics.bellman_ford(G, source, target, weight=impedance)
+        #path = Heuristics.shortest_path_faster(G, source, target, impedance)
+
+    elif heuristic == 'dijkstra':
+
+        distance, path = Heuristics.bidirectional_dijkstra(G, source, target, weight=impedance)
+
+    elif heuristic == 'astar':
+
+        path = nx.astar_path(G, source, target, weight=impedance)
+
+    else:
+
+        distance, path = Heuristics.bellman_ford(G, source, target, weight=impedance)
 
     # cost to get to the destination:
     # the sum of the weight of all the edges from the path
@@ -138,14 +149,13 @@ def cost_path(G, source, target, vehicle_mass, impedance):
 
     # updates the weight of all edges of the scenario according
     # to the current weight of the vehicle
-    max_grade = max(list(nx.get_edge_attributes(G, "grade").values()))
-    G = Graph.update_weight(G, VEHICLE_MASS, max_grade)
+    #if impedance == 'weight':
+    #    G = Graph.update_weight(G, VEHICLE_MASS)
 
     return sum_path_costs, path
 
 
-def sum_costs_route(G, H, route, vehicle_mass, impedance):
-#def sum_costs_route(G, H, route, vehicle_mass, impedance=IMPEDANCE):
+def sum_costs_route(G, H, route, vehicle_mass, impedance, heuristic):
     """
     This function calculates the total cost of a route,
     according to the collect points in the scenario, and
@@ -164,6 +174,7 @@ def sum_costs_route(G, H, route, vehicle_mass, impedance):
     vehicle_mass += H.nodes[route[0]]['mass']
     paths = []
     cost_work_all = 0
+    edges_update_mass = []
 
     for node in range(len(route)-1):
 
@@ -172,11 +183,17 @@ def sum_costs_route(G, H, route, vehicle_mass, impedance):
         vehicle_mass += H.nodes[route[node]]['mass']
 
         # checks the cost of going from one node to the next collection point
-        cost_work, path = cost_path(G, route[node], route[node + 1], vehicle_mass, impedance)
+        cost_work, path = cost_path(G, route[node], route[node + 1], vehicle_mass, impedance, heuristic)
         cost_work_all += cost_work
-        paths.append(path)
+        if len(path) > 1:
+            paths.extend(path[:-1])
+            edges_update_mass.append(path[:2])
+        else:
+            paths.extend(path)
+            #edges_update_mass.append([paths[len(paths)-2], path[0]])
+            #edges_update_mass.append([path[0], path[0]])
 
-    return cost_work_all, paths
+    return cost_work_all, paths, edges_update_mass
 
 
 if __name__ == '__main__':

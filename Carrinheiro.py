@@ -42,10 +42,10 @@ def graph_scenario(stop_points, geotiff_name, ad_weights, file_name_osm):
     return G, nodes_coordinates, nodes_mass_increment
 
 
-def nearest_neighbor_path(G, H, node_source, node_target, impedance):
+def nearest_neighbor_path(G, H, node_source, node_target, impedance, heuristic):
 
-    route = Heuristics.nearest_neighbor(G, H, node_source, node_target, VEHICLE_MASS, impedance)
-    cost_total, paths = Graph_Collect.sum_costs_route(G, H, route, VEHICLE_MASS, impedance)
+    route, paths = Heuristics.nearest_neighbor(G, H, node_source, node_target, VEHICLE_MASS, impedance, heuristic)
+    cost_total, paths = Graph_Collect.sum_costs_route(G, H, route, VEHICLE_MASS, impedance, heuristic)
 
     return cost_total, paths
 

@@ -2,7 +2,7 @@ import osmnx as ox
 import pandas as pd
 import networkx as nx
 import inspect
-from geography import GeoTiff
+from geography import GeoTiff, OpenSteetMap, Coordinates
 from Constants import *
 import math
 from scipy import constants
@@ -511,7 +511,7 @@ def impedance(length, grade):
     return length * penalty
 
 
-def update_weight(G, vehicle_mass, max_grade = None, speed_factor = SPEED_FACTOR):
+def update_weight(G, vehicle_mass):
     """
     Update all edge weights of the graph G,
     according to current vehicle mass.
@@ -527,24 +527,13 @@ def update_weight(G, vehicle_mass, max_grade = None, speed_factor = SPEED_FACTOR
     """
 
     for u, v, k, data in G.edges(keys=True, data=True):
-
         weight_value = work(vehicle_mass, data['surface'], data['grade'], data['length']) # math.degrees()
-        impedance_value = impedance(data['length'], data['grade'])
-        # length_value = data['length']
-        length_value = float(data['length'])
-
-        # if GRADE_FACTOR is True:
-        #    weight_value = max_grade_factor(weight_value, max_grade, data['grade'])
-
-        if speed_factor is True:
-            # avoid dangerous streets (high speeds)
-            length_value = max_speed_factor(length_value, data['maxspeed'])
-            weight_value = max_speed_factor(weight_value, data['maxspeed'])
-            impedance_value = max_speed_factor(impedance_value, data['maxspeed'])
-
         data['weight'] = weight_value
-        data['impedance'] = impedance_value
-        data['distance'] = length_value
+
+    # standard: all weight values positive
+    min_weight = min(list(nx.get_edge_attributes(G, "weight").values()))
+    for u, v, k, data in G.edges(keys=True, data=True):
+        data['weight'] = data['weight'] - min_weight
 
     return G
 
@@ -567,7 +556,7 @@ def get_edge_weight(G, u, v, id_edge, impedance):
                         The weight of the edge
     """
     weights = nx.get_edge_attributes(G, impedance)
-    return weights.get((u, v, id_edge))
+    return weights.get((u, v))#, id_edge)
 
 
 def _weight(G, weight):
@@ -596,22 +585,6 @@ def _weight(G, weight):
     return lambda u, v, data: data.get(weight, 1)
 
 
-def configure_graph(G, geotiff_name, stop_points, ad_weights, file_name_osm):
-
-    G, nodes_and_coordinates, nodes_and_weights = Scenario.add_collect_points(G, stop_points, ad_weights, file_name_osm)
-    G = set_node_elevation(G, MAPS_DIRECTORY + geotiff_name)
-    G = edge_grades(G)
-    G = surface(G, file_name_osm)
-    G = hypotenuse(G)
-    G = maxspeed(G)
-    max_grade = max(list(nx.get_edge_attributes(G, "grade").values()))
-    G = update_weight(G, VEHICLE_MASS, max_grade)
-
-    #plot_graph(G)
-
-    return G, nodes_and_coordinates, nodes_and_weights
-
-
 def configure_graph_simulation(G, geotiff_name, stop_points, ad_weights, file_name_osm, G_file):
 
     G, nodes_coordinates, nodes_weights = Scenario.add_collect_points(G, stop_points, ad_weights, file_name_osm)
@@ -630,10 +603,9 @@ def configure_graph_simulation(G, geotiff_name, stop_points, ad_weights, file_na
 
     G = maxspeed(G)
 
-    G = travel_time(G)
+    # G = travel_time(G)
 
-    max_grade = max(list(nx.get_edge_attributes(G, "grade").values()))
-    G = update_weight(G, VEHICLE_MASS, max_grade)
+    G = update_weight(G, VEHICLE_MASS)
 
     # it transforms some edges in two ways streets
     if BIDIRECTIONAL is True:
@@ -646,15 +618,27 @@ def configure_graph_simulation(G, geotiff_name, stop_points, ad_weights, file_na
 
 
 if __name__ == '__main__':
-    G = ox.graph_from_bbox(-22.796008, -22.843953, -47.054891, -47.107718000000006, network_type='all')
+    coords = [(-22.816008, -47.075614),  (-22.816639, -47.074891), (-22.818317, -47.083415), (-22.820244, -47.085422), (-22.823953, -47.087718), (-22.816008, -47.075614), (-22.816080, -47.075616), (-22.816000, -47.075697), (-22.816081, -47.075677), (-22.816014, -47.075633)]
+    osm_file = OpenSteetMap.file_osm('../' + MAPS_DIRECTORY, coords)
+    geotiff_name = GeoTiff.geotiff('../' + MAPS_DIRECTORY, coords)
+    geotiff_name = '../' + MAPS_DIRECTORY + geotiff_name + '.tif'
+    max_lat, min_lat, max_lon, min_lon = Coordinates.create_osmnx(coords)
+    G = ox.graph_from_bbox(max_lat, min_lat, max_lon, min_lon, network_type='all')
+    G = set_node_elevation(G, geotiff_name)
+    G = edge_grades(G)
+    G = surface(G, '../'+ osm_file)
+    if BIDIRECTIONAL is True:
+        add_edges_G = [(v, u, data) for u, v, k, data in G.edges(keys=True, data=True) if G.has_edge(*(v, u)) is False and data['highway'] in TWO_WAY]
+        G.add_edges_from(add_edges_G)
+    G = maxspeed(G)
+    G = update_weight(G, 110)
+
+
+    #G = ox.graph_from_bbox(-22.796008, -22.843953, -47.054891, -47.107718000000006, network_type='all')
     #name_osm = '../data/maps/47.107718000000006_22.843953_47.054891_22.796008.osm'
     #G = set_node_elevation(G, '../' + MAPS_DIRECTORY + '22S48_ZN.tif')
     #G = edge_grades(G)
     #nodes = list(G.nodes)
-    #G = surface(G, '../' + MAPS_DIRECTORY, name_osm)
-    #G = hypotenuse(G)
-    G = maxspeed(G)
-    G = travel_time(G)
     #G = update_weight(G, 10)
 
     #G2 = G.copy()
