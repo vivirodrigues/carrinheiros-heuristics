@@ -368,13 +368,9 @@ def heuristic_combination(function, G, H, node_source, node_target, politic, heu
     result_work.update([('total_time', float(time_total))])
 
     # write the json with simulation results
-    write_json(result_work, file_name + '_coords_' + politic + '_heuristic_' + heuristic)
-
-    # plot the route
-    # fig, ax = ox.plot_graph_route(G, paths, route_linewidth=6, node_size=0, bgcolor='w')
+    write_json(result_work, file_name + '_coords_' + politic + '_heuristic_' + heuristic)    
 
 
-# @profile
 def create_route(stop_points, material_weights, json_files, seed, n = None, n_points=10):
 
     # the desired geotiff name to the mosaic
@@ -461,46 +457,7 @@ def create_route(stop_points, material_weights, json_files, seed, n = None, n_po
 
     # Nearest
     heuristic_combination(nn, G, H, node_source, node_target, politics[0], heuristics[0], stop_points, dict_edges_net, nodes_mass_increment, file_name_json, nodes_coordinates)
-    """
-    heuristic_combination(nn, G, H, node_source, node_target, politics[0], heuristics[1], stop_points, dict_edges_net,
-                          nodes_mass_increment, file_name_json, nodes_coordinates)
-    heuristic_combination(nn, G, H, node_source, node_target, politics[0], heuristics[2], stop_points, dict_edges_net,
-                          nodes_mass_increment, file_name_json, nodes_coordinates)
-    heuristic_combination(nn, G, H, node_source, node_target, politics[1], heuristics[0], stop_points, dict_edges_net,
-                          nodes_mass_increment, file_name_json, nodes_coordinates)
-    heuristic_combination(nn, G, H, node_source, node_target, politics[1], heuristics[1], stop_points, dict_edges_net,
-                          nodes_mass_increment, file_name_json, nodes_coordinates)
-    heuristic_combination(nn, G, H, node_source, node_target, politics[1], heuristics[2], stop_points, dict_edges_net,
-                          nodes_mass_increment, file_name_json, nodes_coordinates)
-
-    # Closest
-    heuristic_combination(ci, G, H, node_source, node_target, politics[0], heuristics[0], stop_points, dict_edges_net,
-                          nodes_mass_increment, file_name_json, nodes_coordinates)
-    heuristic_combination(ci, G, H, node_source, node_target, politics[0], heuristics[1], stop_points, dict_edges_net,
-                          nodes_mass_increment, file_name_json, nodes_coordinates)
-    heuristic_combination(ci, G, H, node_source, node_target, politics[0], heuristics[2], stop_points, dict_edges_net,
-                          nodes_mass_increment, file_name_json, nodes_coordinates)
-    heuristic_combination(ci, G, H, node_source, node_target, politics[1], heuristics[0], stop_points, dict_edges_net,
-                          nodes_mass_increment, file_name_json, nodes_coordinates)
-    heuristic_combination(ci, G, H, node_source, node_target, politics[1], heuristics[1], stop_points, dict_edges_net,
-                          nodes_mass_increment, file_name_json, nodes_coordinates)
-    heuristic_combination(ci, G, H, node_source, node_target, politics[1], heuristics[2], stop_points, dict_edges_net,
-                          nodes_mass_increment, file_name_json, nodes_coordinates)
-
-    # Further
-    heuristic_combination(fi, G, H, node_source, node_target, politics[0], heuristics[0], stop_points, dict_edges_net,
-                          nodes_mass_increment, file_name_json, nodes_coordinates)
-    heuristic_combination(fi, G, H, node_source, node_target, politics[0], heuristics[1], stop_points, dict_edges_net,
-                          nodes_mass_increment, file_name_json, nodes_coordinates)
-    heuristic_combination(fi, G, H, node_source, node_target, politics[0], heuristics[2], stop_points, dict_edges_net,
-                          nodes_mass_increment, file_name_json, nodes_coordinates)
-    heuristic_combination(fi, G, H, node_source, node_target, politics[1], heuristics[0], stop_points, dict_edges_net,
-                          nodes_mass_increment, file_name_json, nodes_coordinates)
-    heuristic_combination(fi, G, H, node_source, node_target, politics[1], heuristics[1], stop_points, dict_edges_net,
-                          nodes_mass_increment, file_name_json, nodes_coordinates)
-    heuristic_combination(fi, G, H, node_source, node_target, politics[1], heuristics[2], stop_points, dict_edges_net,
-                          nodes_mass_increment, file_name_json, nodes_coordinates)
-    """
+    
     return json_files
 
 
@@ -514,28 +471,37 @@ def get_seed(seed_id):
     """
     seeds = [1859168769, 1598189534,
              1822174485, 1871883252,
-             188312339, 2125204119, #1936856304
-             2041095833, 358485174, 1695858027, 762772169,
-             437720306, 939612284, 1998078925,
-             981631283, 1024155645,
-             558746720, 1349341884, 678622600,
+             188312339, 2125204119, 
+             2041095833, 358485174,
+             1695858027, 762772169,
+             437720306, 939612284,
+             1998078925, 981631283,
+             1024155645, 558746720,
+             1349341884, 678622600,
              1319566104, 722594620,
              1700738670, 1995749838,
-             346983590, 565528207, 513791680,
-             2081634991, 1769370802,
-             349544396, 1996610406, 1973272912,
-             1972392646, 605846893, 934100682,
-             222735214, 2101442385, 2009044369,
-             1895218768, 701857417, 89865291,
-             144443207, 720236707, 822780843,
-             898723423, 1644999263, 985046914,
-             1859531344, 1024155645, 764283187,
-             778794064, 683102175, 1334983095,
-             1072664641, 999157082, 1277478588,
-             960703545, 186872697, 425414105,
-             694388766, 773370613, 1384311643,
-             1000004583, 1147024708, 538474442,
-             1936856304, 1996632795]
+             346983590, 565528207,
+             513791680, 2081634991,
+             1769370802, 349544396,
+             1996610406, 1973272912,
+             1972392646, 605846893,
+             934100682, 222735214,
+             2101442385, 2009044369,
+             1895218768, 701857417,
+             89865291, 144443207,
+             720236707, 822780843,
+             898723423, 1644999263,
+             985046914,1859531344,
+             1024155645, 764283187,
+             778794064, 683102175,
+             1334983095,1072664641,
+             999157082, 1277478588,
+             960703545, 186872697,
+             425414105, 694388766,
+             773370613, 1384311643,
+             1000004583, 1147024708,
+             538474442, 1936856304,
+             1996632795]
     return seeds[seed_id]
 
 
@@ -576,7 +542,7 @@ def main():
         mean_lat = [-1.46000]
 
     # standard deviation of the gaussian function
-    sigma = 0.002 #0.005
+    sigma = 0.002
 
     # vector with vehicle weight increment in the collect points
     mass_increments = [random.randint(0, max_mass_material) for i in range(n_points-2)]
